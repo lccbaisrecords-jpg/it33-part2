@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT 33 Final Exam — Part 2 Portal</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f1f5f9; color: #0f172a; padding: 16px; }
+    .wrap { max-width: 720px; margin: 14px auto; }
+    .header { background: #0f172a; color: #fff; padding: 18px 20px; border-radius: 12px 12px 0 0; }
+    .header h1 { margin: 0; font-size: 18px; }
+    .header p { margin: 4px 0 0; font-size: 12.5px; color: #cbd5e1; }
+    .card { background: #fff; padding: 20px; border-radius: 0 0 12px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    .hidden { display: none !important; }
+    label { display: block; font-size: 13px; font-weight: 700; margin: 14px 0 5px; color: #1e293b; }
+    input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-family: inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    .btn { border: none; border-radius: 8px; padding: 11px 18px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .btn-primary { background: #1d4ed8; color: #fff; }
+    .btn-success { background: #059669; color: #fff; }
+    .btn-ghost { background: #e2e8f0; color: #1e293b; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .alert { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-top: 10px; }
+    .alert-err { background: #fee2e2; color: #991b1b; }
+    .alert-ok { background: #dcfce7; color: #166534; }
+    .alert-info { background: #dbeafe; color: #1e40af; }
+    .peer-card { border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; margin-top: 12px; background: #f8fafc; }
+    .peer-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .q-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid #e2e8f0; font-size: 12.5px; flex-wrap: wrap; }
+    .scale { display: flex; gap: 6px; }
+    .scale label { margin: 0; font-weight: 600; cursor: pointer; }
+    .scale input { display: none; }
+    .scale span { display: inline-block; width: 30px; height: 30px; line-height: 30px; text-align: center; border-radius: 6px; border: 1px solid #94a3b8; background: #fff; }
+    .scale input:checked + span { background: #1d4ed8; color: #fff; border-color: #1d4ed8; font-weight: 800; }
+    .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+    .score-tile { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; text-align: center; }
+    .score-tile .val { font-size: 24px; font-weight: 800; color: #0f172a; }
+    .score-tile .lbl { font-size: 12px; color: #64748b; }
+    @media (max-width: 600px) { .score-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>La Consolacion College – Bais City</h1>
+    <p id="subTitle">IT 33: Systems Integration & Architecture 1 — Final Exam Part 2</p>
+  </div>
+
+  <div class="card">
+    <div id="loadingMsg" class="alert alert-info">Connecting to IT 33 Exam Portal...</div>
+
+    <!-- STEP 1: CODE ENTRY (Used for BOTH Submit & Score Reveal) -->
+    <div id="codeStep" class="hidden">
+      <div id="modeBanner" class="alert alert-info"></div>
+      <label>Enter Your Unique Access Code (Lower-Right Corner of Your Paper)</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="codeInput" placeholder="e.g. K4M9P2" style="text-transform:uppercase; font-family:Consolas,monospace; font-weight:700; letter-spacing:1.5px;">
+        <button class="btn btn-primary" id="verifyBtn" onclick="verifyCode()">Continue</button>
+      </div>
+      <div id="codeErr" class="alert alert-err hidden"></div>
+    </div>
+
+    <!-- SUBMIT MODE: PART 2 FORM -->
+    <div id="submitStep" class="hidden">
+      <div class="alert alert-ok" id="verifiedBadge"></div>
+
+      <label>1. Select Your Full Name</label>
+      <select id="studentSelect" onchange="onIdentityOrGroupChange()"></select>
+
+      <label>2. Select Your Project Group / Mock System Title</label>
+      <select id="groupSelect" onchange="onGroupSelectChange()"></select>
+      <div id="newGroupBox" class="hidden">
+        <label>Enter New Project Group / Mock System Title</label>
+        <input type="text" id="newGroupInput" placeholder="e.g. Smart Barangay Clinic Queue System">
+      </div>
+      <div id="groupMembersPreview" class="alert alert-info hidden"></div>
+
+      <hr style="margin:18px 0; border:none; border-top:1px solid #e2e8f0;">
+
+      <h3 style="margin:0 0 6px;">Part 2A: Course Reflection</h3>
+      <label id="lblRef1">Reflection 1</label>
+      <textarea id="ref1Input" placeholder="Write your answer clearly..."></textarea>
+
+      <label id="lblRef2">Reflection 2</label>
+      <textarea id="ref2Input" placeholder="Write your answer clearly..."></textarea>
+
+      <hr style="margin:18px 0; border:none; border-top:1px solid #e2e8f0;">
+
+      <h3 style="margin:0 0 4px;">Part 2B: Groupmate Participation Evaluation (5 Quick Quality Items)</h3>
+      <p style="font-size:12.5px; color:#475569; margin:0 0 10px;">
+        Rate <strong>1</strong> (Needs Improvement) to <strong>5</strong> (Outstanding). Classmates you add below will automatically be linked to this Group Title.
+      </p>
+
+      <div style="display:flex; gap:8px; align-items:center;">
+        <select id="addPeerSelect"></select>
+        <button class="btn btn-ghost" type="button" onclick="addPeerCardFromDropdown()" style="white-space:nowrap;">+ Add Groupmate</button>
+      </div>
+
+      <div id="peerCardsContainer"></div>
+
+      <label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-top:12px;">
+        <input type="checkbox" id="soloCheck" style="width:auto;">
+        I worked solo / have no other groupmates to evaluate.
+      </label>
+
+      <div id="submitErr" class="alert alert-err hidden"></div>
+      <button class="btn btn-success" id="submitBtn" style="width:100%; margin-top:16px;" onclick="submitPart2()">Submit Part 2 Examination</button>
+    </div>
+
+    <!-- SUBMIT SUCCESS -->
+    <div id="doneStep" class="hidden">
+      <div class="alert alert-ok">
+        <h3 style="margin:0 0 6px;">Part 2 Submitted Successfully!</h3>
+        <div id="doneDetails"></div>
+      </div>
+    </div>
+
+    <!-- SCORE REVEALER MODE (AFTER DECEMBER 2) -->
+    <div id="revealStep" class="hidden">
+      <h2 style="margin-top:0;" id="revName">Student Name</h2>
+      <p style="font-size:13px; color:#475569; margin:0;" id="revMeta"></p>
+      <div class="score-grid">
+        <div class="score-tile"><div class="val" id="revP1">-</div><div class="lbl">Part 1 (ZipGrade)</div></div>
+        <div class="score-tile"><div class="val" id="revP2">-</div><div class="lbl">Part 2 (Reflection & Peer)</div></div>
+        <div class="score-tile"><div class="val" id="revTot">-</div><div class="lbl">Total Final Score</div></div>
+      </div>
+      <div class="alert alert-info" id="revNote" style="margin-top:14px;"></div>
+      <button class="btn btn-ghost" style="margin-top:10px;" onclick="location.reload()">Check Another Code</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // >>> REPLACE WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL <<<
+  const API_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+  const QUALITY_QUESTIONS = [
+    '1. Attendance & Availability (joined meetings & replied on time)',
+    '2. Task Completion (finished assigned proposal/system tasks)',
+    '3. Work Quality & Effort (contributed accurate, useful work)',
+    '4. Teamwork & Communication (cooperative & respectful)',
+    '5. Overall Participation & Dependability'
+  ];
+
+  let BOOT = null;
+  let VERIFIED = null;
+  let ACTIVE_PEERS = []; // list of evaluatee names currently shown
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch(API_URL + '?action=bootstrap', { redirect: 'follow' });
+      BOOT = await res.json();
+      if (!BOOT.ok) throw new Error(BOOT.error || 'Failed to load.');
+      document.getElementById('loadingMsg').classList.add('hidden');
+      document.getElementById('subTitle').textContent = `${BOOT.courseCode}: ${BOOT.courseTitle} — ${BOOT.term}`;
+      document.getElementById('codeStep').classList.remove('hidden');
+
+      document.getElementById('modeBanner').innerHTML = BOOT.mode === 'reveal'
+        ? '<strong>Score Release Active:</strong> The December 2 deadline has passed. Enter your paper\'s Access Code to view your Final Exam score.'
+        : '<strong>Part 2 Open:</strong> Enter the unique Access Code from the lower-right corner of your exam paper.';
+    } catch (e) {
+      document.getElementById('loadingMsg').className = 'alert alert-err';
+      document.getElementById('loadingMsg').textContent = 'Connection error: ' + e.message;
+    }
+  });
+
+  async function verifyCode() {
+    const code = document.getElementById('codeInput').value.trim().toUpperCase();
+    const errEl = document.getElementById('codeErr');
+    errEl.classList.add('hidden');
+    if (!code) return;
+
+    const btn = document.getElementById('verifyBtn');
+    btn.disabled = true; btn.textContent = 'Checking...';
+    try {
+      const res = await fetch(`${API_URL}?action=verifyCode&code=${encodeURIComponent(code)}`, { redirect: 'follow' });
+      const data = await res.json();
+      if (!data.ok) {
+        errEl.textContent = data.error;
+        errEl.classList.remove('hidden');
+        return;
+      }
+      VERIFIED = data;
+      document.getElementById('codeStep').classList.add('hidden');
+
+      if (data.mode === 'reveal') {
+        showScoreReveal(data);
+      } else {
+        initSubmitForm(data);
+      }
+    } catch (e) {
+      errEl.textContent = 'Error verifying code: ' + e.message;
+      errEl.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Continue';
+    }
+  }
+
+  function showScoreReveal(d) {
+    document.getElementById('revealStep').classList.remove('hidden');
+    document.getElementById('revName').textContent = d.studentName;
+    document.getElementById('revMeta').textContent = `Code: ${d.code} (Form ${d.setCode}) | Group: ${d.groupTitle || '—'}`;
+    document.getElementById('revP1').textContent = d.part1;
+    document.getElementById('revP2').textContent = d.part2;
+    document.getElementById('revTot').textContent = d.total;
+    document.getElementById('revNote').textContent = `Status: ${d.status}` + (d.remarks ? ` — ${d.remarks}` : '');
+  }
+
+  function initSubmitForm(data) {
+    document.getElementById('submitStep').classList.remove('hidden');
+    document.getElementById('verifiedBadge').textContent = `Verified Access Code: ${data.code} (Form ${data.setCode})`;
+    document.getElementById('lblRef1').textContent = 'Reflection 1: ' + BOOT.reflectionQ1;
+    document.getElementById('lblRef2').textContent = 'Reflection 2: ' + BOOT.reflectionQ2;
+
+    // Populate Roster Dropdown (exclude already submitted for self-selection)
+    const available = data.roster.filter(r => r.part2Status !== 'Submitted');
+    document.getElementById('studentSelect').innerHTML = '<option value="">-- Select Your Full Name --</option>' +
+      available.map(r => `<option value="${esc(r.name)}">${esc(r.name)}</option>`).join('');
+
+    // Populate All Roster for Peer Dropdown
+    document.getElementById('addPeerSelect').innerHTML = '<option value="">-- Select Classmate to Add & Rate --</option>' +
+      data.roster.map(r => `<option value="${esc(r.name)}">${esc(r.name)}</option>`).join('');
+
+    // Populate Groups
+    document.getElementById('groupSelect').innerHTML =
+      '<option value="">-- Select Your Group / System Title --</option>' +
+      data.groups.map(g => `<option value="${esc(g.title)}">${esc(g.title)} (${g.members.length} member/s)</option>`).join('') +
+      '<option value="__NEW__">+ Add New Group / System Title (First member to log in)</option>';
+  }
+
+  function onGroupSelectChange() {
+    const val = document.getElementById('groupSelect').value;
+    document.getElementById('newGroupBox').classList.toggle('hidden', val !== '__NEW__');
+    onIdentityOrGroupChange();
+  }
+
+  function onIdentityOrGroupChange() {
+    const me = document.getElementById('studentSelect').value;
+    const gVal = document.getElementById('groupSelect').value;
+    const preview = document.getElementById('groupMembersPreview');
+    ACTIVE_PEERS = [];
+
+    if (gVal && gVal !== '__NEW__') {
+      const grp = VERIFIED.groups.find(g => g.title === gVal);
+      if (grp) {
+        preview.classList.remove('hidden');
+        preview.textContent = 'Registered members in this group: ' + (grp.members.length ? grp.members.join(', ') : 'None yet');
+        grp.members.forEach(m => {
+          if (m !== me && !ACTIVE_PEERS.includes(m)) ACTIVE_PEERS.push(m);
+        });
+      }
+    } else {
+      preview.classList.add('hidden');
+    }
+    renderPeerCards();
+  }
+
+  function addPeerCardFromDropdown() {
+    const me = document.getElementById('studentSelect').value;
+    const peer = document.getElementById('addPeerSelect').value;
+    if (!peer) return;
+    if (peer === me) return alert('You cannot evaluate yourself.');
+    if (!ACTIVE_PEERS.includes(peer)) {
+      ACTIVE_PEERS.push(peer);
+      renderPeerCards();
+    }
+    document.getElementById('addPeerSelect').value = '';
+  }
+
+  function removePeer(name) {
+    ACTIVE_PEERS = ACTIVE_PEERS.filter(p => p !== name);
+    renderPeerCards();
+  }
+
+  function renderPeerCards() {
+    const box = document.getElementById('peerCardsContainer');
+    if (!ACTIVE_PEERS.length) {
+      box.innerHTML = '<div class="alert alert-info">No groupmates added yet. Select your groupmates above to rate them.</div>';
+      return;
+    }
+    box.innerHTML = ACTIVE_PEERS.map((name, pIdx) => `
+      <div class="peer-card" data-peer="${esc(name)}">
+        <div class="peer-head">
+          <strong>${esc(name)}</strong>
+          <button type="button" class="btn btn-ghost" style="padding:4px 8px; font-size:11px;" onclick="removePeer('${esc(name)}')">Remove</button>
+        </div>
+        ${QUALITY_QUESTIONS.map((qLabel, qIdx) => `
+          <div class="q-row">
+            <span>${qLabel}</span>
+            <div class="scale">
+              ${[1,2,3,4,5].map(n => `
+                <label>
+                  <input type="radio" name="p_${pIdx}_q_${qIdx}" value="${n}">
+                  <span>${n}</span>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  async function submitPart2() {
+    const errEl = document.getElementById('submitErr');
+    errEl.classList.add('hidden');
+
+    const studentName = document.getElementById('studentSelect').value;
+    const gVal = document.getElementById('groupSelect').value;
+    const groupTitle = gVal === '__NEW__' ? document.getElementById('newGroupInput').value.trim() : gVal;
+    const reflection1 = document.getElementById('ref1Input').value.trim();
+    const reflection2 = document.getElementById('ref2Input').value.trim();
+    const isSolo = document.getElementById('soloCheck').checked;
+
+    if (!studentName) return showSubErr('Please select your Full Name.');
+    if (!groupTitle) return showSubErr('Please select or enter your Group / System Title.');
+    if (!reflection1 || !reflection2) return showSubErr('Please answer both reflection questions.');
+    if (!ACTIVE_PEERS.length && !isSolo) return showSubErr('Please add and evaluate at least one groupmate (or check the solo option).');
+
+    const evaluations = [];
+    const cards = document.querySelectorAll('.peer-card');
+    for (let i = 0; i < cards.length; i++) {
+      const peerName = cards[i].dataset.peer;
+      const ratings = [];
+      for (let q = 0; q < 5; q++) {
+        const checked = cards[i].querySelector(`input[name="p_${i}_q_${q}"]:checked`);
+        if (!checked) return showSubErr(`Please complete all 5 ratings for ${peerName}.`);
+        ratings.push(Number(checked.value));
+      }
+      evaluations.push({ evaluatee: peerName, q1: ratings[0], q2: ratings[1], q3: ratings[2], q4: ratings[3], q5: ratings[4] });
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Submitting...';
+    try {
+      // text/plain avoids CORS preflight OPTIONS failure in Google Apps Script!
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'submitPart2',
+          code: VERIFIED.code,
+          studentName,
+          groupTitle,
+          reflection1,
+          reflection2,
+          evaluations
+        })
+      });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || 'Submission failed.');
+
+      document.getElementById('submitStep').classList.add('hidden');
+      document.getElementById('doneStep').classList.remove('hidden');
+      document.getElementById('doneDetails').innerHTML = `
+        <strong>Student:</strong> ${esc(studentName)}<br>
+        <strong>Group:</strong> ${esc(groupTitle)}<br>
+        <strong>Saved Members:</strong> ${esc((out.groupMembers || []).join(', '))}<br>
+        <strong>Timestamp:</strong> ${esc(out.timestamp)}<br><br>
+        Keep your Access Code (<strong>${esc(VERIFIED.code)}</strong>) to view your Final Score after December 2, 2026.
+      `;
+    } catch (e) {
+      showSubErr(e.message);
+      btn.disabled = false; btn.textContent = 'Submit Part 2 Examination';
+    }
+  }
+
+  function showSubErr(msg) {
+    const el = document.getElementById('submitErr');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+</script>
+</body>
+</html>
