@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LCC Bais — Exam Part 2 &amp; Score Portal</title>
+  <title>LCC Bais — Exam &amp; Demo Evaluation Portal</title>
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f1f5f9; color: #0f172a; padding: 16px; }
-    .wrap { max-width: 720px; margin: 14px auto; }
+    .wrap { max-width: 760px; margin: 14px auto; }
     .header { background: #0f172a; color: #fff; padding: 18px 20px; border-radius: 12px 12px 0 0; }
     .header h1 { margin: 0; font-size: 18px; }
     .header p { margin: 4px 0 0; font-size: 12.5px; color: #cbd5e1; }
@@ -15,16 +15,18 @@
     .hidden { display: none !important; }
     label { display: block; font-size: 13px; font-weight: 700; margin: 14px 0 5px; color: #1e293b; }
     input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-family: inherit; }
-    textarea { min-height: 90px; resize: vertical; }
-    .btn { border: none; border-radius: 8px; padding: 11px 18px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    textarea { min-height: 88px; resize: vertical; }
+    .btn { border: none; border-radius: 8px; padding: 10px 16px; font-weight: 700; font-size: 13.5px; cursor: pointer; }
     .btn-primary { background: #1d4ed8; color: #fff; }
     .btn-success { background: #059669; color: #fff; }
+    .btn-warn { background: #d97706; color: #fff; }
     .btn-ghost { background: #e2e8f0; color: #1e293b; }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
     .alert { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-top: 10px; }
     .alert-err { background: #fee2e2; color: #991b1b; }
     .alert-ok { background: #dcfce7; color: #166534; }
     .alert-info { background: #dbeafe; color: #1e40af; }
+    .alert-warn { background: #fef3c7; color: #92400e; }
     .peer-card { border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; margin-top: 12px; background: #f8fafc; }
     .peer-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .q-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid #e2e8f0; font-size: 12.5px; flex-wrap: wrap; }
@@ -37,23 +39,32 @@
     .score-tile { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; text-align: center; }
     .score-tile .val { font-size: 24px; font-weight: 800; color: #0f172a; }
     .score-tile .lbl { font-size: 12px; color: #64748b; }
-    @media (max-width: 600px) { .score-grid { grid-template-columns: 1fr; } }
+    .prog-bar { background: #e2e8f0; border-radius: 999px; height: 10px; overflow: hidden; margin: 8px 0; }
+    .prog-fill { background: #059669; height: 100%; transition: width 0.25s; }
+    .presenter-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; max-height: 250px; overflow-y: auto; padding: 2px; }
+    .p-chip { border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 12.5px; background: #fff; text-align: left; }
+    .p-chip.active { border: 2px solid #1d4ed8; background: #eff6ff; }
+    .p-chip.done { border-color: #86efac; background: #f0fdf4; }
+    .badge { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+    .b-green { background: #dcfce7; color: #166534; }
+    .b-amber { background: #fef3c7; color: #92400e; }
+    @media (max-width: 620px) { .score-grid, .presenter-list { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 <div class="wrap">
   <div class="header">
     <h1>La Consolacion College – Bais City</h1>
-    <p id="subTitle">Department of Library Science &amp; Information Technology — Exam Part 2 Portal</p>
+    <p id="subTitle">Department of Library Science &amp; Information Technology — Exam &amp; Evaluation Portal</p>
   </div>
 
   <div class="card">
     <div id="loadingMsg" class="alert alert-info">Connecting to Exam Portal...</div>
 
-    <!-- STEP 1: ENTER UNIQUE CODE -->
+    <!-- STEP 1: CODE ENTRY -->
     <div id="codeStep" class="hidden">
       <div class="alert alert-info">
-        Enter the <strong>6-character Access Code</strong> from the lower-right corner of your test paper to open Part 2 (or view your released score after the deadline).
+        Enter your <strong>6-character Access Code</strong> to begin, resume saved progress, or check released scores.
       </div>
       <label>Access Code</label>
       <div style="display:flex; gap:8px;">
@@ -63,10 +74,9 @@
       <div id="codeErr" class="alert alert-err hidden"></div>
     </div>
 
-    <!-- STEP 2: PART 2 SUBMISSION -->
+    <!-- MODE A: STANDARD ZIPGRADE_PART2 -->
     <div id="submitStep" class="hidden">
       <div class="alert alert-ok" id="verifiedBadge"></div>
-
       <label>1. Select Your Full Name</label>
       <select id="studentSelect" onchange="onIdentityOrGroupChange()"></select>
 
@@ -79,41 +89,70 @@
       <div id="groupMembersPreview" class="alert alert-info hidden"></div>
 
       <hr style="margin:18px 0; border:none; border-top:1px solid #e2e8f0;">
-
       <h3 style="margin:0 0 6px;">Part 2A: Course Reflection</h3>
       <label id="lblRef1">Reflection 1</label>
-      <textarea id="ref1Input" placeholder="Write your answer clearly..."></textarea>
-
+      <textarea id="ref1Input"></textarea>
       <label id="lblRef2">Reflection 2</label>
-      <textarea id="ref2Input" placeholder="Write your answer clearly..."></textarea>
+      <textarea id="ref2Input"></textarea>
 
       <hr style="margin:18px 0; border:none; border-top:1px solid #e2e8f0;">
-
-      <h3 style="margin:0 0 4px;">Part 2B: Groupmate Participation Evaluation (5 Quick Quality Items)</h3>
-      <p style="font-size:12.5px; color:#475569; margin:0 0 10px;">
-        Rate <strong>1</strong> (Needs Improvement) to <strong>5</strong> (Outstanding). Classmates you add below are automatically saved to this Group Title.
-      </p>
-
+      <h3 style="margin:0 0 4px;">Part 2B: Groupmate Participation Evaluation (5 Quick Items)</h3>
+      <p style="font-size:12.5px; color:#475569; margin:0 0 10px;">Rate <strong>1</strong> (Needs Improvement) to <strong>5</strong> (Outstanding).</p>
       <div style="display:flex; gap:8px; align-items:center;">
         <select id="addPeerSelect"></select>
         <button class="btn btn-ghost" type="button" onclick="addPeerCardFromDropdown()" style="white-space:nowrap;">+ Add Groupmate</button>
       </div>
-
       <div id="peerCardsContainer"></div>
-
       <label style="display:flex; align-items:center; gap:8px; font-weight:600; margin-top:12px;">
-        <input type="checkbox" id="soloCheck" style="width:auto;">
-        I worked individually / have no groupmates to evaluate.
+        <input type="checkbox" id="soloCheck" style="width:auto;"> I worked individually / have no groupmates to evaluate.
       </label>
-
       <div id="submitErr" class="alert alert-err hidden"></div>
       <button class="btn btn-success" id="submitBtn" style="width:100%; margin-top:16px;" onclick="submitPart2()">Submit Part 2</button>
+    </div>
+
+    <!-- MODE B: DEMO_ONLINE (2 Reflections + All-Classmate Specialization Demo Ratings) -->
+    <div id="demoStep" class="hidden">
+      <div class="alert alert-ok" id="demoBadge"></div>
+
+      <label>1. Your Full Name (Locked to this Access Code once you save)</label>
+      <select id="demoStudentSelect" onchange="onDemoStudentPicked()"></select>
+
+      <div id="demoProgressBox" class="alert alert-info" style="margin-top:14px;">
+        <div style="display:flex; justify-content:space-between; font-weight:700;">
+          <span id="demoProgressText">Classmates Rated: 0 / 0</span>
+          <span id="demoStatusTag">Not Saved Yet</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" id="demoProgFill" style="width:0%;"></div></div>
+        <small>You can save partial classmate ratings as demos happen and re-login with your code anytime until you click <strong>Finalize &amp; Lock</strong>.</small>
+      </div>
+
+      <hr style="margin:16px 0; border:none; border-top:1px solid #e2e8f0;">
+      <h3 style="margin:0 0 6px;">Part 1: Specialization Demo Reflections</h3>
+      <label id="demoLblRef1">Reflection 1</label>
+      <textarea id="demoRef1" placeholder="Write your reflection..."></textarea>
+      <label id="demoLblRef2">Reflection 2</label>
+      <textarea id="demoRef2" placeholder="Write your reflection..."></textarea>
+      <button class="btn btn-ghost" type="button" style="margin-top:8px;" onclick="saveDemoDraftOnly()">💾 Save Reflections Draft</button>
+
+      <hr style="margin:18px 0; border:none; border-top:1px solid #e2e8f0;">
+      <h3 style="margin:0 0 4px;">Part 2: Classmate Specialization Demo Evaluations (5 Basic Criteria)</h3>
+      <p style="font-size:12.5px; color:#475569; margin:0 0 8px;">Select a classmate below (your own name is excluded), rate <strong>1–5</strong>, and click <strong>Submit Classmate Rating</strong>. Only marked <strong>Complete</strong> when all classmates are submitted &amp; finalized.</p>
+
+      <div id="presenterGrid" class="presenter-list"></div>
+
+      <div id="activeDemoCard" class="peer-card hidden"></div>
+
+      <div id="demoMsg" class="alert hidden"></div>
+
+      <div style="margin-top:18px; padding-top:14px; border-top:2px solid #e2e8f0;">
+        <button class="btn btn-success" id="finalizeDemoBtn" style="width:100%;" onclick="finalizeDemoAll()">🔒 Finalize &amp; Lock Complete Submission</button>
+      </div>
     </div>
 
     <!-- SUCCESS -->
     <div id="doneStep" class="hidden">
       <div class="alert alert-ok">
-        <h3 style="margin:0 0 6px;">Part 2 Submitted Successfully!</h3>
+        <h3 style="margin:0 0 6px;">Submission Finalized &amp; Locked!</h3>
         <div id="doneDetails"></div>
       </div>
     </div>
@@ -123,8 +162,8 @@
       <h2 style="margin-top:0;" id="revName">Student Name</h2>
       <p style="font-size:13px; color:#475569; margin:0;" id="revMeta"></p>
       <div class="score-grid">
-        <div class="score-tile"><div class="val" id="revP1">-</div><div class="lbl">Part 1 (ZipGrade)</div></div>
-        <div class="score-tile"><div class="val" id="revP2">-</div><div class="lbl">Part 2 (Online)</div></div>
+        <div class="score-tile"><div class="val" id="revP1">-</div><div class="lbl">Part 1</div></div>
+        <div class="score-tile"><div class="val" id="revP2">-</div><div class="lbl">Part 2 / Online</div></div>
         <div class="score-tile"><div class="val" id="revTot">-</div><div class="lbl">Total Score</div></div>
       </div>
       <div class="alert alert-info" id="revNote" style="margin-top:14px;"></div>
@@ -134,10 +173,9 @@
 </div>
 
 <script>
-  // >>> PASTE YOUR SINGLE APPS SCRIPT WEB APP URL HERE <<<
   const API_URL = 'https://script.google.com/macros/s/AKfycbwcBqhRD7pg7Tehj_VIBMyLVy592DEGDXGw5OvDyfkacSaQJkkSk9sUosC6iurkBQ-f/exec';
 
-  const QUALITY_QUESTIONS = [
+  const GROUP_QUALITY_QS = [
     '1. Attendance & Availability (joined meetings & replied on time)',
     '2. Task Completion (finished assigned tasks on schedule)',
     '3. Work Quality & Effort (contributed accurate, useful work)',
@@ -145,8 +183,18 @@
     '5. Overall Participation & Dependability'
   ];
 
+  const DEMO_CRITERIA_QS = [
+    '1. Clarity & Mastery of Specialization Topic',
+    '2. Live Demo Execution & Preparedness',
+    '3. Practical Relevance & Problem-Solving Value',
+    '4. Organization & Visual Presentation',
+    '5. Delivery, Confidence & Q&A Handling'
+  ];
+
   let VERIFIED = null;
   let ACTIVE_PEERS = [];
+  let DEMO_SAVED_EVALS = {};
+  let DEMO_ACTIVE_TARGET = '';
 
   window.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -172,18 +220,15 @@
     try {
       const res = await fetch(`${API_URL}?action=verifyCode&code=${encodeURIComponent(code)}`, { redirect: 'follow' });
       const data = await res.json();
-      if (!data.ok) {
-        errEl.textContent = data.error; errEl.classList.remove('hidden');
-        return;
-      }
+      if (!data.ok) { errEl.textContent = data.error; errEl.classList.remove('hidden'); return; }
       VERIFIED = data;
       document.getElementById('subTitle').textContent = `${data.subject.courseCode}: ${data.subject.courseTitle} — ${data.subject.term}`;
       document.getElementById('codeStep').classList.add('hidden');
       if (data.mode === 'reveal') showScoreReveal(data);
+      else if (data.mode === 'submit_demo') initDemoForm(data);
       else initSubmitForm(data);
     } catch (e) {
-      errEl.textContent = 'Error checking code: ' + e.message;
-      errEl.classList.remove('hidden');
+      errEl.textContent = 'Error checking code: ' + e.message; errEl.classList.remove('hidden');
     } finally {
       btn.disabled = false; btn.textContent = 'Continue';
     }
@@ -192,13 +237,197 @@
   function showScoreReveal(d) {
     document.getElementById('revealStep').classList.remove('hidden');
     document.getElementById('revName').textContent = d.studentName;
-    document.getElementById('revMeta').textContent = `${d.subject.courseCode} | Code: ${d.code} (Form ${d.setCode}) | Group: ${d.groupTitle || '—'}`;
+    document.getElementById('revMeta').textContent = `${d.subject.courseCode} | Code: ${d.code} | ${d.groupTitle || '—'}`;
     document.getElementById('revP1').textContent = d.part1;
     document.getElementById('revP2').textContent = d.part2;
     document.getElementById('revTot').textContent = d.total;
     document.getElementById('revNote').textContent = `Status: ${d.status}` + (d.remarks ? ` — ${d.remarks}` : '');
   }
 
+  /* =====================================================================
+   * MODE B: DEMO_ONLINE (Partial Save + Re-Login + Finalize Lock)
+   * ===================================================================== */
+  function initDemoForm(data) {
+    document.getElementById('demoStep').classList.remove('hidden');
+    document.getElementById('demoBadge').textContent = `${data.subject.courseCode} • Code: ${data.code}` + (data.claimedBy ? ` • Resuming session for ${data.claimedBy}` : '');
+    document.getElementById('demoLblRef1').textContent = 'Reflection 1: ' + data.subject.reflectionQ1;
+    document.getElementById('demoLblRef2').textContent = 'Reflection 2: ' + data.subject.reflectionQ2;
+    document.getElementById('demoRef1').value = (data.savedDraft && data.savedDraft.reflection1) || '';
+    document.getElementById('demoRef2').value = (data.savedDraft && data.savedDraft.reflection2) || '';
+    DEMO_SAVED_EVALS = (data.savedDraft && data.savedDraft.evaluations) ? data.savedDraft.evaluations : {};
+
+    const sel = document.getElementById('demoStudentSelect');
+    if (data.claimedBy) {
+      sel.innerHTML = `<option value="${esc(data.claimedBy)}">${esc(data.claimedBy)} (Locked to this code)</option>`;
+      sel.disabled = true;
+    } else {
+      const unclaimed = data.roster.filter(r => !r.accessCodeUsed || r.accessCodeUsed === data.code);
+      sel.innerHTML = '<option value="">-- Select Your Full Name --</option>' +
+        unclaimed.map(r => `<option value="${esc(r.name)}">${esc(r.name)}</option>`).join('');
+      sel.disabled = false;
+    }
+    onDemoStudentPicked();
+  }
+
+  function onDemoStudentPicked() {
+    const me = document.getElementById('demoStudentSelect').value;
+    const grid = document.getElementById('presenterGrid');
+    if (!me) {
+      grid.innerHTML = '<div class="alert alert-info" style="grid-column:1/-1;">Select your name above to load your classmates (your own name will be excluded).</div>';
+      document.getElementById('activeDemoCard').classList.add('hidden');
+      updateDemoProgress(0, 0);
+      return;
+    }
+    const classmates = VERIFIED.roster.filter(r => r.name.toLowerCase() !== me.toLowerCase());
+    const ratedCount = classmates.filter(c => !!DEMO_SAVED_EVALS[c.name]).length;
+    updateDemoProgress(ratedCount, classmates.length);
+
+    grid.innerHTML = classmates.map(c => {
+      const saved = DEMO_SAVED_EVALS[c.name];
+      const activeCls = DEMO_ACTIVE_TARGET === c.name ? 'active' : '';
+      const doneCls = saved ? 'done' : '';
+      return `<button type="button" class="p-chip ${activeCls} ${doneCls}" onclick="openDemoPresenter('${esc(c.name)}')">
+        <span>${esc(c.name)}</span>
+        <span class="badge ${saved ? 'b-green' : 'b-amber'}">${saved ? `Submitted (${saved.avg}/5)` : 'Pending'}</span>
+      </button>`;
+    }).join('');
+
+    if (!DEMO_ACTIVE_TARGET || DEMO_ACTIVE_TARGET === me) {
+      const firstPending = classmates.find(c => !DEMO_SAVED_EVALS[c.name]) || classmates[0];
+      if (firstPending) openDemoPresenter(firstPending.name);
+    }
+  }
+
+  function updateDemoProgress(rated, total) {
+    const pct = total > 0 ? Math.round((rated / total) * 100) : 0;
+    document.getElementById('demoProgressText').textContent = `Classmates Rated: ${rated} / ${total}`;
+    document.getElementById('demoProgFill').style.width = pct + '%';
+    const tag = document.getElementById('demoStatusTag');
+    if (total > 0 && rated === total) {
+      tag.textContent = 'Ready to Finalize!';
+      tag.style.color = '#166534';
+    } else if (rated > 0) {
+      tag.textContent = 'Partial (In Progress)';
+      tag.style.color = '#1e40af';
+    } else {
+      tag.textContent = 'Pending';
+      tag.style.color = '#92400e';
+    }
+  }
+
+  function openDemoPresenter(targetName) {
+    DEMO_ACTIVE_TARGET = targetName;
+    const saved = DEMO_SAVED_EVALS[targetName] || {};
+    const card = document.getElementById('activeDemoCard');
+    card.classList.remove('hidden');
+    card.innerHTML = `
+      <div class="peer-head">
+        <strong>Evaluating Presenter: ${esc(targetName)}</strong>
+        <span class="badge ${saved.avg ? 'b-green' : 'b-amber'}">${saved.avg ? 'Already Submitted — Editing' : 'Not Yet Submitted'}</span>
+      </div>
+      ${DEMO_CRITERIA_QS.map((qLabel, qIdx) => {
+        const curVal = saved['q' + (qIdx + 1)] || 0;
+        return `<div class="q-row">
+          <span>${qLabel}</span>
+          <div class="scale">
+            ${[1,2,3,4,5].map(n => `<label><input type="radio" name="demo_q_${qIdx}" value="${n}" ${curVal === n ? 'checked' : ''}><span>${n}</span></label>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+      <button type="button" class="btn btn-primary" id="saveOneDemoBtn" style="width:100%; margin-top:12px;" onclick="saveOneClassmateDemo('${esc(targetName)}')">
+        ✅ Submit / Save Rating for ${esc(targetName)}
+      </button>
+    `;
+    // Refresh active border without resetting card
+    document.querySelectorAll('.p-chip').forEach(ch => {
+      ch.classList.toggle('active', ch.querySelector('span').textContent === targetName);
+    });
+  }
+
+  async function postDemoProgress(evaluations, finalize, btnEl, loadingText) {
+    const me = document.getElementById('demoStudentSelect').value;
+    if (!me) return showDemoMsg('Please select your Full Name first.', 'err');
+
+    const r1 = document.getElementById('demoRef1').value.trim();
+    const r2 = document.getElementById('demoRef2').value.trim();
+    const origText = btnEl ? btnEl.textContent : '';
+    if (btnEl) { btnEl.disabled = true; btnEl.textContent = loadingText; }
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST', redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'submitDemoProgress',
+          code: VERIFIED.code,
+          studentName: me,
+          reflection1: r1,
+          reflection2: r2,
+          evaluations,
+          finalize
+        })
+      });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || 'Save failed.');
+
+      DEMO_SAVED_EVALS = out.savedEvaluations || DEMO_SAVED_EVALS;
+      document.getElementById('demoStudentSelect').disabled = true;
+
+      if (out.finalized) {
+        document.getElementById('demoStep').classList.add('hidden');
+        document.getElementById('doneStep').classList.remove('hidden');
+        document.getElementById('doneDetails').innerHTML = `
+          <strong>Subject:</strong> ${esc(VERIFIED.subject.courseCode)}<br>
+          <strong>Student:</strong> ${esc(me)}<br>
+          <strong>Status:</strong> Complete (${out.ratedCount}/${out.totalClassmates} Classmates Rated)<br>
+          <strong>Timestamp:</strong> ${esc(out.timestamp)}<br><br>
+          Your submission is now locked. Keep code <strong>${esc(VERIFIED.code)}</strong> to view your score after release.
+        `;
+      } else {
+        showDemoMsg(`Saved! Status: ${out.statusLabel} (${out.timestamp}). You can continue or re-login later with code ${VERIFIED.code}.`, 'ok');
+        const classmates = VERIFIED.roster.filter(r => r.name.toLowerCase() !== me.toLowerCase());
+        const nextPending = classmates.find(c => !DEMO_SAVED_EVALS[c.name]);
+        DEMO_ACTIVE_TARGET = nextPending ? nextPending.name : DEMO_ACTIVE_TARGET;
+        onDemoStudentPicked();
+        if (DEMO_ACTIVE_TARGET) openDemoPresenter(DEMO_ACTIVE_TARGET);
+      }
+    } catch (e) {
+      showDemoMsg(e.message, 'err');
+    } finally {
+      if (btnEl) { btnEl.disabled = false; btnEl.textContent = origText; }
+    }
+  }
+
+  function saveOneClassmateDemo(targetName) {
+    const ratings = [];
+    for (let q = 0; q < 5; q++) {
+      const checked = document.querySelector(`input[name="demo_q_${q}"]:checked`);
+      if (!checked) return showDemoMsg(`Please select ratings 1–5 for all 5 criteria for ${targetName}.`, 'err');
+      ratings.push(Number(checked.value));
+    }
+    const btn = document.getElementById('saveOneDemoBtn');
+    postDemoProgress([{ evaluatee: targetName, q1: ratings[0], q2: ratings[1], q3: ratings[2], q4: ratings[3], q5: ratings[4] }], false, btn, 'Saving...');
+  }
+
+  function saveDemoDraftOnly() {
+    postDemoProgress([], false, null, '');
+  }
+
+  function finalizeDemoAll() {
+    if (!confirm('Finalize and lock your submission? After finalizing, you cannot edit your reflections or classmate ratings.')) return;
+    postDemoProgress([], true, document.getElementById('finalizeDemoBtn'), 'Finalizing...');
+  }
+
+  function showDemoMsg(msg, type) {
+    const el = document.getElementById('demoMsg');
+    el.className = 'alert ' + (type === 'err' ? 'alert-err' : 'alert-ok');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+  }
+
+  /* =====================================================================
+   * MODE A: STANDARD ZIPGRADE_PART2
+   * ===================================================================== */
   function initSubmitForm(data) {
     document.getElementById('submitStep').classList.remove('hidden');
     document.getElementById('verifiedBadge').textContent = `${data.subject.courseCode} • Verified Code: ${data.code} (Form ${data.setCode})`;
@@ -208,10 +437,8 @@
     const available = data.roster.filter(r => r.part2Status !== 'Submitted');
     document.getElementById('studentSelect').innerHTML = '<option value="">-- Select Your Full Name --</option>' +
       available.map(r => `<option value="${esc(r.name)}">${esc(r.name)}</option>`).join('');
-
     document.getElementById('addPeerSelect').innerHTML = '<option value="">-- Select Classmate to Add &amp; Rate --</option>' +
       data.roster.map(r => `<option value="${esc(r.name)}">${esc(r.name)}</option>`).join('');
-
     document.getElementById('groupSelect').innerHTML =
       '<option value="">-- Select Your Group / Output Title --</option>' +
       data.groups.map(g => `<option value="${esc(g.title)}">${esc(g.title)} (${g.members.length} member/s)</option>`).join('') +
@@ -233,12 +460,10 @@
       const grp = VERIFIED.groups.find(g => g.title === gVal);
       if (grp) {
         preview.classList.remove('hidden');
-        preview.textContent = 'Registered members in this group: ' + (grp.members.length ? grp.members.join(', ') : 'None yet');
+        preview.textContent = 'Registered members: ' + (grp.members.length ? grp.members.join(', ') : 'None yet');
         grp.members.forEach(m => { if (m !== me && !ACTIVE_PEERS.includes(m)) ACTIVE_PEERS.push(m); });
       }
-    } else {
-      preview.classList.add('hidden');
-    }
+    } else preview.classList.add('hidden');
     renderPeerCards();
   }
 
@@ -251,10 +476,7 @@
     document.getElementById('addPeerSelect').value = '';
   }
 
-  function removePeer(name) {
-    ACTIVE_PEERS = ACTIVE_PEERS.filter(p => p !== name);
-    renderPeerCards();
-  }
+  function removePeer(name) { ACTIVE_PEERS = ACTIVE_PEERS.filter(p => p !== name); renderPeerCards(); }
 
   function renderPeerCards() {
     const box = document.getElementById('peerCardsContainer');
@@ -264,23 +486,17 @@
     }
     box.innerHTML = ACTIVE_PEERS.map((name, pIdx) => `
       <div class="peer-card" data-peer="${esc(name)}">
-        <div class="peer-head">
-          <strong>${esc(name)}</strong>
+        <div class="peer-head"><strong>${esc(name)}</strong>
           <button type="button" class="btn btn-ghost" style="padding:4px 8px; font-size:11px;" onclick="removePeer('${esc(name)}')">Remove</button>
         </div>
-        ${QUALITY_QUESTIONS.map((qLabel, qIdx) => `
-          <div class="q-row">
-            <span>${qLabel}</span>
-            <div class="scale">
-              ${[1,2,3,4,5].map(n => `<label><input type="radio" name="p_${pIdx}_q_${qIdx}" value="${n}"><span>${n}</span></label>`).join('')}
-            </div>
-          </div>`).join('')}
+        ${GROUP_QUALITY_QS.map((qLabel, qIdx) => `<div class="q-row"><span>${qLabel}</span>
+          <div class="scale">${[1,2,3,4,5].map(n => `<label><input type="radio" name="p_${pIdx}_q_${qIdx}" value="${n}"><span>${n}</span></label>`).join('')}</div>
+        </div>`).join('')}
       </div>`).join('');
   }
 
   async function submitPart2() {
-    const errEl = document.getElementById('submitErr');
-    errEl.classList.add('hidden');
+    const errEl = document.getElementById('submitErr'); errEl.classList.add('hidden');
     const studentName = document.getElementById('studentSelect').value;
     const gVal = document.getElementById('groupSelect').value;
     const groupTitle = gVal === '__NEW__' ? document.getElementById('newGroupInput').value.trim() : gVal;
@@ -291,10 +507,10 @@
     if (!studentName) return showSubErr('Please select your Full Name.');
     if (!groupTitle) return showSubErr('Please select or enter your Group / Output Title.');
     if (!reflection1 || !reflection2) return showSubErr('Please answer both reflection questions.');
-    if (!ACTIVE_PEERS.length && !isSolo) return showSubErr('Please add and rate at least one groupmate (or check the individual option).');
+    if (!ACTIVE_PEERS.length && !isSolo) return showSubErr('Please add and rate at least one groupmate (or check individual).');
 
     const evaluations = [];
-    const cards = document.querySelectorAll('.peer-card');
+    const cards = document.querySelectorAll('#peerCardsContainer .peer-card');
     for (let i = 0; i < cards.length; i++) {
       const peerName = cards[i].dataset.peer;
       const ratings = [];
@@ -306,8 +522,7 @@
       evaluations.push({ evaluatee: peerName, q1: ratings[0], q2: ratings[1], q3: ratings[2], q4: ratings[3], q5: ratings[4] });
     }
 
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.textContent = 'Submitting...';
+    const btn = document.getElementById('submitBtn'); btn.disabled = true; btn.textContent = 'Submitting...';
     try {
       const res = await fetch(API_URL, {
         method: 'POST', redirect: 'follow',
@@ -316,7 +531,6 @@
       });
       const out = await res.json();
       if (!out.ok) throw new Error(out.error || 'Submission failed.');
-
       document.getElementById('submitStep').classList.add('hidden');
       document.getElementById('doneStep').classList.remove('hidden');
       document.getElementById('doneDetails').innerHTML = `
@@ -324,23 +538,15 @@
         <strong>Student:</strong> ${esc(studentName)}<br>
         <strong>Group:</strong> ${esc(groupTitle)}<br>
         <strong>Members Linked:</strong> ${esc((out.groupMembers || []).join(', '))}<br>
-        <strong>Timestamp:</strong> ${esc(out.timestamp)}<br><br>
-        Keep your Access Code (<strong>${esc(VERIFIED.code)}</strong>) to view your Final Score after release.
+        <strong>Timestamp:</strong> ${esc(out.timestamp)}
       `;
     } catch (e) {
-      showSubErr(e.message);
-      btn.disabled = false; btn.textContent = 'Submit Part 2';
+      showSubErr(e.message); btn.disabled = false; btn.textContent = 'Submit Part 2';
     }
   }
 
-  function showSubErr(msg) {
-    const el = document.getElementById('submitErr');
-    el.textContent = msg; el.classList.remove('hidden');
-  }
-
-  function esc(str) {
-    return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
+  function showSubErr(msg) { const el = document.getElementById('submitErr'); el.textContent = msg; el.classList.remove('hidden'); }
+  function esc(str) { return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 </script>
 </body>
 </html>
